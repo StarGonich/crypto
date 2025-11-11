@@ -260,7 +260,7 @@ if __name__ == '__main__':
 
         # Декодирование для проверки
         decoded_message = lsb.lsb_decode(stego_img)
-        # print(f"Декодирование успешно: {message == decoded_message}")
+        print(f"Декодирование успешно: {message == decoded_message}")
 
         # =========================================================================
         # 1) НЕЗАМЕТНОСТЬ
@@ -276,11 +276,11 @@ if __name__ == '__main__':
 
         # 1.2 Построить карту разности |cover − stego|
         diff_path, diff_map = create_difference_map(original_img, stego_img, image_name, payload, visualizations_dir)
-        # print(f"   Карта разности сохранена: {os.path.basename(diff_path)}")
+        print(f"   Карта разности сохранена: {os.path.basename(diff_path)}")
 
         # 1.3 Построить гистограммы каналов до/после
         hist_path = plot_histograms(original_img, stego_img, image_name, payload, visualizations_dir)
-        # print(f"   Гистограммы сохранены: {os.path.basename(hist_path)}")
+        print(f"   Гистограммы сохранены: {os.path.basename(hist_path)}")
 
         # =========================================================================
         # 2) ОБНАРУЖИВАЕМОСТЬ
@@ -301,4 +301,4 @@ if __name__ == '__main__':
         print(f"\nИтог: {detectable_count}/3 каналов показывают наличие стего")
 
     # ROC-анализ
-    # roc_auc, fpr, tpr, thresholds = generate_roc_analysis(original_img, payloads, visualizations_dir)
+    roc_auc, fpr, tpr, thresholds = generate_roc_analysis(original_img, payloads, visualizations_dir)
