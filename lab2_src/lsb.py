@@ -30,7 +30,7 @@ def lsb_encode(img_array: np.ndarray, message: bytes) -> np.ndarray:
     # Преобразование сообщения в биты
     message_bits = text_to_bits(message)
 
-    # Добавляем маркер конца (8 нулевых байтов)
+    # Добавляем маркер конца (2 нулевых байта)
     end_marker = [0] * 16
     all_bits = message_bits + end_marker
 
@@ -58,16 +58,42 @@ def lsb_encode(img_array: np.ndarray, message: bytes) -> np.ndarray:
     return stego_array
 
 
+def lsb_encode2(img_array: np.ndarray, message: bytes) -> np.ndarray:
+    stego_array = img_array.copy()
+    height, width, channels = stego_array.shape
+
+    # Преобразование сообщения в биты
+    message_bits = text_to_bits(message)
+
+    # Добавляем маркер конца (2 нулевых байта)
+    end_marker = [0] * 16
+    all_bits = message_bits + end_marker
+
+    # Проверка емкости
+    total_capacity = height * width * channels
+    if len(all_bits) > total_capacity:
+        raise ValueError(f"Сообщение слишком длинное. Максимум: {total_capacity // 8} байт")
+
+    # Встраивание битов
+    bit_index = 0
+    for i in range(height):
+        for j in range(width):
+            for channel in range(channels):
+                if bit_index < len(all_bits):
+                    # Замена младшего бита
+                    stego_array[i, j, channel] = (stego_array[i, j, channel] & 0xFC) | all_bits[bit_index] * 2 | all_bits[bit_index + 1]
+                    bit_index += 2
+                else:
+                    break
+            if bit_index >= len(all_bits):
+                break
+        if bit_index >= len(all_bits):
+            break
+
+    return stego_array
+
+
 def lsb_decode(stego_array: np.ndarray) -> bytes:
-    """
-    Декодирование сообщения из стего-изображения
-
-    Args:
-        stego_array: стего-изображение как numpy array
-
-    Returns:
-        message: декодированное сообщение (bytes)
-    """
     height, width, channels = stego_array.shape
 
     bits = []
@@ -87,7 +113,7 @@ def lsb_decode(stego_array: np.ndarray) -> bytes:
                 else:
                     zero_count = 0
 
-                if zero_count >= 16:  # 8 нулевых байтов
+                if zero_count >= 16:  # 2 нулевых байтов
                     bits = bits[:-16]
                     return bits_to_text(bits).encode('utf-8')
 
@@ -116,6 +142,6 @@ if __name__ == "__main__":
 
     # Проверка корректности
     if message == decoded_message:
-        print("✓ Сообщение успешно скрыто и восстановлено!")
+        print("Сообщение успешно скрыто и восстановлено!")
     else:
-        print("✗ Ошибка: сообщение восстановлено некорректно")
+        print("Ошибка: сообщение восстановлено некорректно")

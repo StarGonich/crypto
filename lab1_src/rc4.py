@@ -11,7 +11,7 @@ def get_key(S, x, y):
     return S[(S[x] + S[y]) % 256], x, y
 
 
-def rc4(msg: bytes, key: bytes, iv: bytes) -> bytearray:
+def rc4(msg: bytes, key: bytes, iv=None) -> bytearray:
     len_msg = len(msg)
     len_key = len(key)
     cipher = bytearray(len_msg)
@@ -24,28 +24,10 @@ def rc4(msg: bytes, key: bytes, iv: bytes) -> bytearray:
         j = (j + S[i] + key[i % len_key]) % 256
         S[i], S[j] = S[j], S[i]
 
-    for i in range(256):
-        j = (j + S[i] + iv[i % len(iv)]) % 256
-        S[i], S[j] = S[j], S[i]
-
-    for i in range(len_msg):
-        key_byte, x, y = get_key(S, x, y)
-        cipher[i] = msg[i] ^ key_byte
-
-    return cipher
-
-def rc4(msg: bytes, key: bytes) -> bytearray:
-    len_msg = len(msg)
-    len_key = len(key)
-    cipher = bytearray(len_msg)
-    S = list(range(256))
-    x = 0
-    y = 0
-
-    j = 0
-    for i in range(256):
-        j = (j + S[i] + key[i % len_key]) % 256
-        S[i], S[j] = S[j], S[i]
+    if iv is not None:
+        for i in range(256):
+            j = (j + S[i] + iv[i % len(iv)]) % 256
+            S[i], S[j] = S[j], S[i]
 
     for i in range(len_msg):
         key_byte, x, y = get_key(S, x, y)
@@ -55,10 +37,10 @@ def rc4(msg: bytes, key: bytes) -> bytearray:
 
 
 if __name__ == "__main__":
-    key = b'MY_SECRET_KEY_123'
+    key = b'I_LOVE_JUSTIN_BIBER'
     iv = os.urandom(16)
 
-    img_array = load_image('checkerboard.png')
+    img_array = load_image('../imgs/checkerboard.png')
     original_shape = img_array.shape
     image_bytes = image_to_bytes(img_array)
 

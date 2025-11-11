@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from scipy import stats
 from sklearn.metrics import roc_curve, auc
 
-from lsb_src import lsb
+from lab2_src import lsb
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 src_dir = os.path.join(current_dir, 'src')
@@ -15,7 +15,6 @@ from utils import load_image, save_image
 
 
 def calculate_psnr(original, stego):
-    """Расчет PSNR (Peak Signal-to-Noise Ratio)"""
     mse = np.mean((original.astype(float) - stego.astype(float)) ** 2)
     if mse == 0:
         return float('inf')
@@ -24,7 +23,6 @@ def calculate_psnr(original, stego):
 
 
 def calculate_ssim(original, stego):
-    """Упрощенный расчет SSIM (Structural Similarity Index)"""
     C1 = (0.01 * 255) ** 2
     C2 = (0.03 * 255) ** 2
 
@@ -41,7 +39,6 @@ def calculate_ssim(original, stego):
 
 
 def create_difference_map(original, stego, image_name, payload, output_dir):
-    """Создание и сохранение карты разности"""
     diff_map = np.abs(original.astype(float) - stego.astype(float))
 
     plt.figure(figsize=(12, 4))
@@ -102,7 +99,7 @@ def plot_histograms(original, stego, image_name, payload, output_dir):
 
 def chi_square_test(image_array, channel=0):
     hist, _ = np.histogram(image_array[:, :, channel].flatten(), bins=256, range=(0, 255))
-    print(hist)
+    # print(hist)
     chi_square = 0
     degrees_of_freedom = 0
 
@@ -117,7 +114,7 @@ def chi_square_test(image_array, channel=0):
             chi_2k1 = ((freq_2k1 - expected) ** 2) / expected
             chi_square += chi_2k + chi_2k1
             degrees_of_freedom += 1
-    print(degrees_of_freedom)
+    # print(degrees_of_freedom)
     if degrees_of_freedom > 0:
         p_value = 1 - stats.chi2.cdf(chi_square, degrees_of_freedom - 1)
         return p_value, chi_square
@@ -139,11 +136,11 @@ def generate_message_for_payload(image_array, payload_ratio):
     message_bits = int((payload_ratio / 100) * total_capacity) - service_bits
     message_bytes = max(0, message_bits // 8)
 
-    # message = b'a' * message_bytes
-    if message_bytes > 0:
-        message = os.urandom(message_bytes)
-    else:
-        message = b''
+    message = b'a' * message_bytes
+    # if message_bytes > 0:
+    #     message = os.urandom(message_bytes)
+    # else:
+    #     message = b''
 
     return message
 
@@ -233,7 +230,7 @@ def generate_roc_analysis(original_img, payloads, visualizations_dir):
 
 if __name__ == '__main__':
     # Параметры анализа
-    image_path = '../imgs/checkerboard.png'
+    image_path = '../imgs/gradient.png'
     image_name = os.path.splitext(os.path.basename(image_path))[0]
     print(f"Изображение: {image_path}")
 
@@ -263,7 +260,7 @@ if __name__ == '__main__':
 
         # Декодирование для проверки
         decoded_message = lsb.lsb_decode(stego_img)
-        print(f"Декодирование успешно: {message == decoded_message}")
+        # print(f"Декодирование успешно: {message == decoded_message}")
 
         # =========================================================================
         # 1) НЕЗАМЕТНОСТЬ
@@ -279,11 +276,11 @@ if __name__ == '__main__':
 
         # 1.2 Построить карту разности |cover − stego|
         diff_path, diff_map = create_difference_map(original_img, stego_img, image_name, payload, visualizations_dir)
-        print(f"   Карта разности сохранена: {os.path.basename(diff_path)}")
+        # print(f"   Карта разности сохранена: {os.path.basename(diff_path)}")
 
         # 1.3 Построить гистограммы каналов до/после
         hist_path = plot_histograms(original_img, stego_img, image_name, payload, visualizations_dir)
-        print(f"   Гистограммы сохранены: {os.path.basename(hist_path)}")
+        # print(f"   Гистограммы сохранены: {os.path.basename(hist_path)}")
 
         # =========================================================================
         # 2) ОБНАРУЖИВАЕМОСТЬ
@@ -304,4 +301,4 @@ if __name__ == '__main__':
         print(f"\nИтог: {detectable_count}/3 каналов показывают наличие стего")
 
     # ROC-анализ
-    roc_auc, fpr, tpr, thresholds = generate_roc_analysis(original_img, payloads, visualizations_dir)
+    # roc_auc, fpr, tpr, thresholds = generate_roc_analysis(original_img, payloads, visualizations_dir)

@@ -1,8 +1,35 @@
 # crypto.py
 import argparse
 import sys
-from lsb import lsb_encode, lsb_decode
+
+import numpy as np
+
+from lsb import lsb_encode, lsb_decode, lsb_encode2
 from utils import load_image, save_image
+
+
+def calculate_psnr(original, stego):
+    mse = np.mean((original.astype(float) - stego.astype(float)) ** 2)
+    if mse == 0:
+        return float('inf')
+    psnr = 20 * np.log10(255 / np.sqrt(mse))
+    return psnr
+
+
+def calculate_ssim(original, stego):
+    C1 = (0.01 * 255) ** 2
+    C2 = (0.03 * 255) ** 2
+
+    mu_x = np.mean(original)
+    mu_y = np.mean(stego)
+    sigma_x = np.std(original)
+    sigma_y = np.std(stego)
+    sigma_xy = np.cov(original.flatten(), stego.flatten())[0, 1]
+
+    numerator = (2 * mu_x * mu_y + C1) * (2 * sigma_xy + C2)
+    denominator = (mu_x ** 2 + mu_y ** 2 + C1) * (sigma_x ** 2 + sigma_y ** 2 + C2)
+
+    return numerator / denominator
 
 
 def main():
@@ -34,7 +61,9 @@ def main():
             else:
                 message = args.message
 
-            stego_array = lsb_encode(img_array, message)
+            stego_array = lsb_encode2(img_array, message)
+
+            print(calculate_psnr(img_array, stego_array))
 
             # Save stego image
             save_image(stego_array, args.output)
